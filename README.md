@@ -29,7 +29,4 @@ This project appears to be a web application with user authentication, food-rela
 - Modern web browser (Chrome, Firefox, Edge, etc.)
 
 ## Authors
-- [Your Name Here]
-
-## License
-- [Specify license if applicable]
+- [5 ALIVE - Ruchitha K P]
