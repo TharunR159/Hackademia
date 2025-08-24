@@ -1,7 +1,7 @@
 # Project README
 
 ## Overview
-This project appears to be a web application with user authentication, food-related features, mapping, and user management. It is built using HTML, CSS, and JavaScript.
+This project is a web application with user authentication, food-related features, mapping, and user management. It is built using HTML, CSS, and JavaScript.
 
 ## Project Structure
 
