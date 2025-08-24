@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore LiveMaps - Open Source APIs</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+            color: #3498db;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .back-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-button:hover {
+            background: #2980b9;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .weather-icon {
+            font-size: 32px;
+            color: #f39c12;
+        }
+
+        .weather-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .weather-info p {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .route-info {
+            background: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .route-info h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .route-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .route-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .route-detail .label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .route-detail .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .time-constraint {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-constraint input {
+            flex: 1;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #e9ecef;
+        }
+
+        .control-btn i {
+            color: #3498db;
+        }
+
+        .traffic-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .traffic-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .traffic-color {
+            width: 20px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .traffic-low {
+            background: #2ecc71;
+        }
+
+        .traffic-medium {
+            background: #f39c12;
+        }
+
+        .traffic-high {
+            background: #e74c3c;
+        }
+
+        .traffic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .datetime-widget {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .time {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .date {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* New styles for enhanced route visualization */
+        .route-animation {
+            stroke-dasharray: 10;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        .pulse-marker {
+            border-radius: 50%;
+            background: #3498db;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+            }
+            100% {
+                transform: scale(0.8);
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+            }
+        }
+
+        .navigation-controls {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .direction-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .direction-arrow {
+            font-size: 20px;
+        }
+
+        .step-counter {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 40%;
+                order: 2;
+            }
+            
+            .map-container {
+                height: 60%;
+                order: 1;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+            }
+
+            .navigation-controls {
+                bottom: 70px;
+                right: 10px;
+            }
+        }
+
+        /* Multi-destination styles */
+        .destinations-container {
+            margin-top: 10px;
+        }
+        
+        .destination-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .destination-input input {
+            flex: 1;
+            margin-right: 8px;
+        }
+        
+        .remove-destination {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .add-destination {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* AI Bot styles */
+        .ai-bot {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .bot-message {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .bot-controls {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .bot-btn {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .bot-btn:hover {
+            background: #e9ecef;
+        }
+        
+        /* Waypoint markers */
+        .waypoint-marker {
+            background: #f39c12;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+        }
+        
+        /* Reorder handles for destinations */
+        .drag-handle {
+            cursor: move;
+            margin-right: 8px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <button class="back-button" id="back-button">
+                <span>←</span> Back to Main
+            </button>
+            <span class="logo-icon">🗺️</span>
+            <h1>Bangalore LiveMaps</h1>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar">JS</div>
+            <span id="user-name">Loading...</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="section">
+                <h2 class="section-title"><i>📍</i> Route Planner</h2>
+                <div class="form-group">
+                    <label for="start">Start Location</label>
+                    <input type="text" id="start" placeholder="Enter start location">
+                </div>
+                <div class="form-group">
+                    <label for="destination">Destinations</label>
+                    <div class="destinations-container" id="destinations-container">
+                        <div class="destination-input">
+                            <span class="drag-handle">≡</span>
+                            <input type="text" class="destination-input-field" placeholder="Enter destination">
+                            <button class="remove-destination">×</button>
+                        </div>
+                    </div>
+                    <button class="add-destination" id="add-destination">+ Add Destination</button>
+                </div>
+                <div class="form-group">
+                    <label for="travel-mode">Travel Mode</label>
+                    <select id="travel-mode">
+                        <option value="car">Car</option>
+                        <option value="bike">Bike (2-Wheel)</option>
+                        <option value="foot">Walking</option>
+                    </select>
+                </div>
+                <button id="calculate-route">Calculate Route</button>
+            </div>
+
+            <!-- Other sections remain the same -->
+            <div class="section">
+                <h2 class="section-title"><i>⚙️</i> Route Constraints</h2>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="avoid-tolls" checked>
+                    <label for="avoid-tolls">Avoid Toll Roads</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="avoid-highways">
+                    <label for="avoid-highways">Avoid Highways</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="consider-weather" checked>
+                    <label for="consider-weather">Consider Weather Conditions</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="consider-traffic" checked>
+                    <label for="consider-traffic">Consider Traffic Conditions</label>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title"><i>🌤️</i> Bangalore Weather</h2>
+                <div class="weather-widget">
+                    <div class="weather-icon" id="weather-icon">☀️</div>
+                    <div class="weather-info">
+                        <h3 id="weather-condition">Sunny</h3>
+                        <p id="weather-temp">28°C | Humidity: 65%</p>
+                        <p id="weather-wind">Wind: 8 km/h from SW</p>
+                    </div>
+                </div>
+                <div class="weather-widget">
+                    <div class="weather-icon">🌡️</div>
+                    <div class="weather-info">
+                        <h3>Road Conditions</h3>
+                        <p id="road-conditions">Dry roads | Good visibility</p>
+                        <p id="weather-delay">No weather delays expected</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title"><i>📊</i> Route Information</h2>
+                <div class="route-info">
+                    <h4>Optimal Route Calculated</h4>
+                    <div class="route-details">
+                        <div class="route-detail">
+                            <span class="label">Distance</span>
+                            <span class="value" id="route-distance">-</span>
+                        </div>
+                        <div class="route-detail">
+                            <span class="label">Duration</span>
+                            <span class="value" id="route-duration">-</span>
+                        </div>
+                        <div class="route-detail">
+                            <span class="label">With Traffic</span>
+                            <span class="value" id="route-traffic">-</span>
+                        </div>
+                        <div class="route-detail">
+                            <span class="label">Fuel Cost</span>
+                            <span class="value" id="route-cost">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="turn-by-turn" style="margin-top: 15px; display: none;">
+                    <h4>Turn-by-Turn Directions</h4>
+                    <div id="directions-list" style="max-height: 150px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+            <div id="loading" class="loading" style="display: none;">
+                <h3>Calculating route...</h3>
+                <p>Please wait while we find the best route for you</p>
+            </div>
+            
+            <div class="datetime-widget">
+                <div class="time" id="current-time">10:30:45 AM</div>
+                <div class="date" id="current-date">Monday, June 12, 2023</div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-btn" id="current-location">
+                    <i>📍</i>
+                    <span>My Location</span>
+                </div>
+                <div class="control-btn" id="traffic-toggle">
+                    <i>🚦</i>
+                    <span>Traffic</span>
+                </div>
+                <div class="control-btn" id="weather-toggle">
+                    <i>🌤️</i>
+                    <span>Weather</span>
+                </div>
+                <div class="control-btn" id="satellite-toggle">
+                    <i>🛰️</i>
+                    <span>Satellite</span>
+                </div>
+            </div>
+
+            <div class="navigation-controls" id="navigation-controls" style="display: none;">
+                <button class="nav-btn" id="start-navigation" title="Start Navigation">▶️</button>
+                <button class="nav-btn" id="pause-navigation" title="Pause Navigation">⏸️</button>
+                <button class="nav-btn" id="stop-navigation" title="Stop Navigation">⏹️</button>
+            </div>
+            
+            <div class="direction-indicator" id="direction-indicator">
+                <span class="direction-arrow" id="direction-arrow">→</span>
+                <span id="direction-text">Continue straight</span>
+            </div>
+            
+            <div class="step-counter" id="step-counter">
+                Step <span id="current-step">1</span> of <span id="total-steps">5</span>
+            </div>
+            
+            <!-- AI Bot for voice guidance -->
+            <div class="ai-bot" id="ai-bot">
+                <div class="bot-avatar">🤖</div>
+                <div class="bot-message" id="bot-message">Hello! I'm your navigation assistant.</div>
+                <div class="bot-controls">
+                    <button class="bot-btn" id="bot-speak" title="Speak">🔊</button>
+                    <button class="bot-btn" id="bot-mute" title="Mute">🔇</button>
+                    <button class="bot-btn" id="bot-close" title="Close">×</button>
+                </div>
+            </div>
+            
+            <div class="traffic-legend">
+                <h4>Bangalore Traffic</h4>
+                <div class="traffic-item">
+                    <div class="traffic-color traffic-low"></div>
+                    <span>Low</span>
+                </div>
+                <div class="traffic-item">
+                    <div class="traffic-color traffic-medium"></div>
+                    <span>Medium</span>
+                </div>
+                <div class="traffic-item">
+                    <div class="traffic-color traffic-high"></div>
+                    <span>Heavy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize map centered on Bangalore
+        const map = L.map('map').setView([12.9716, 77.5946], 12);
+        
+        // Add base tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add satellite layer (optional)
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+        
+        // Initialize variables
+        let trafficVisible = false;
+        let weatherVisible = false;
+        let satelliteView = false;
+        let userHomeLocation = null;
+        let userOfficeLocation = null;
+        let userCommuteMethod = null;
+        let currentMarkers = [];
+        let currentRoute = null;
+        let animatedRoute = null;
+        let movingMarker = null;
+        let navigationInterval = null;
+        let currentStep = 0;
+        let routeSteps = [];
+        let isNavigating = false;
+        let waypoints = [];
+        let speechSynthesis = window.speechSynthesis;
+        let isSpeechEnabled = false;
+        let currentSpeech = null;
+        
+        // Load user data from localStorage
+        function loadUserData() {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentSession'));
+                if (currentUser) {
+                    document.getElementById('user-name').textContent = currentUser.name;
+                    document.getElementById('user-avatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    
+                    // Load user details
+                    const userData = JSON.parse(localStorage.getItem('userData')) || {};
+                    const userDetails = userData[currentUser.email];
+                    
+                    if (userDetails) {
+                        userHomeLocation = userDetails.homeLocation;
+                        userOfficeLocation = userDetails.officeLocation;
+                        userCommuteMethod = userDetails.commuteMethod;
+                        
+                        // Set start and destination based on user data
+                        if (userHomeLocation) {
+                            document.getElementById('start').value = userHomeLocation;
+                        }
+                        
+                        if (userOfficeLocation) {
+                            const firstDestination = document.querySelector('.destination-input-field');
+                            if (firstDestination) {
+                                firstDestination.value = userOfficeLocation;
+                            }
+                        }
+                        
+                        if (userCommuteMethod) {
+                            document.getElementById('travel-mode').value = userCommuteMethod;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading user data:', e);
+            }
+        }
+        
+        // Add destination input field
+        function addDestinationField(value = '') {
+            const container = document.getElementById('destinations-container');
+            const div = document.createElement('div');
+            div.className = 'destination-input';
+            div.innerHTML = `
+                <span class="drag-handle">≡</span>
+                <input type="text" class="destination-input-field" placeholder="Enter destination" value="${value}">
+                <button class="remove-destination">×</button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listener to remove button
+            div.querySelector('.remove-destination').addEventListener('click', function() {
+                if (document.querySelectorAll('.destination-input').length > 1) {
+                    div.remove();
+                } else {
+                    alert('You need at least one destination');
+                }
+            });
+            
+            // Make destination fields draggable for reordering
+            makeDestinationsDraggable();
+        }
+        
+        // Make destination fields draggable
+        function makeDestinationsDraggable() {
+            const container = document.getElementById('destinations-container');
+            let draggedItem = null;
+            
+            // Add drag events to all handles
+            document.querySelectorAll('.drag-handle').forEach(handle => {
+                handle.setAttribute('draggable', 'true');
+                
+                handle.addEventListener('dragstart', function(e) {
+                    draggedItem = this.parentElement;
+                    setTimeout(() => draggedItem.style.display = 'none', 0);
+                });
+                
+                handle.addEventListener('dragend', function() {
+                    draggedItem.style.display = 'flex';
+                    draggedItem = null;
+                });
+            });
+            
+            // Add events to container
+            container.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            container.addEventListener('dragenter', function(e) {
+                e.preventDefault();
+            });
+            
+            container.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedItem && e.target.classList.contains('drag-handle')) {
+                    // Insert before the target's parent
+                    container.insertBefore(draggedItem, e.target.parentElement);
+                } else if (draggedItem && e.target.closest('.destination-input')) {
+                    // Insert before the target input field's parent
+                    container.insertBefore(draggedItem, e.target.closest('.destination-input'));
+                }
+            });
+        }
+        
+        // Get all destination values
+        function getDestinationValues() {
+            const destinations = [];
+            document.querySelectorAll('.destination-input-field').forEach(input => {
+                if (input.value.trim()) {
+                    destinations.push(input.value.trim());
+                }
+            });
+            return destinations;
+        }
+        
+        // Geocode address using Nominatim (OpenStreetMap)
+        async function geocodeAddress(address) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Bangalore, India')}`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lng: parseFloat(data[0].lon),
+                        displayName: data[0].display_name
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                return null;
+            }
+        }
+        
+        // Get route using OSRM API with multiple waypoints
+        async function getRouteWithWaypoints(startCoords, waypointCoords, endCoords, profile) {
+            try {
+                // Construct the coordinates string for the API request
+                let coordsString = `${startCoords.lng},${startCoords.lat};`;
+                
+                // Add waypoints
+                waypointCoords.forEach(waypoint => {
+                    coordsString += `${waypoint.lng},${waypoint.lat};`;
+                });
+                
+                // Add final destination
+                coordsString += `${endCoords.lng},${endCoords.lat}`;
+                
+                const response = await fetch(`https://router.project-osrm.org/route/v1/${profile}/${coordsString}?overview=full&geometries=geojson&steps=true`);
+                const data = await response.json();
+                
+                if (data && data.routes && data.routes.length > 0) {
+                    return data.routes[0];
+                }
+                return null;
+            } catch (error) {
+                console.error('Routing error:', error);
+                return null;
+            }
+        }
+        
+        // Get weather data from Open-Meteo API
+        async function getWeatherData() {
+            try {
+                // Bangalore coordinates
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=12.9716&longitude=77.5946&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto');
+                const data = await response.json();
+                
+                if (data && data.current) {
+                    const weatherCode = data.current.weather_code;
+                    let condition = 'Unknown';
+                    let icon = '❓';
+                    
+                    // Map weather code to condition and icon
+                    if (weatherCode === 0) {
+                        condition = 'Clear sky';
+                        icon = '☀️';
+                    } else if (weatherCode > 0 && weatherCode < 4) {
+                        condition = 'Partly cloudy';
+                        icon = '⛅';
+                    } else if (weatherCode >= 45 && weatherCode <= 48) {
+                        condition = 'Foggy';
+                        icon = '🌫️';
+                    } else if (weatherCode >= 51 && weatherCode <= 67) {
+                        condition = 'Rainy';
+                        icon = '🌧️';
+                    } else if (weatherCode >= 71 && weatherCode <= 77) {
+                        condition = 'Snowy';
+                        icon = '❄️';
+                    } else if (weatherCode >= 80 && weatherCode <= 86) {
+                        condition = 'Rain showers';
+                        icon = '🌦️';
+                    } else if (weatherCode >= 95 && weatherCode <= 99) {
+                        condition = 'Thunderstorm';
+                        icon = '⛈️';
+                    }
+                    
+                    return {
+                        temperature: Math.round(data.current.temperature_2m),
+                        humidity: data.current.relative_humidity_2m,
+                        windSpeed: Math.round(data.current.wind_speed_10m),
+                        condition: condition,
+                        icon: icon
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Weather API error:', error);
+                // Return fallback data
+                return {
+                    temperature: 28,
+                    humidity: 65,
+                    windSpeed: 8,
+                    condition: 'Sunny',
+                    icon: '☀️'
+                };
+            }
+        }
+        
+        // Update weather information
+        async function updateWeatherInfo() {
+            const weather = await getWeatherData();
+            if (weather) {
+                document.getElementById('weather-icon').textContent = weather.icon;
+                document.getElementById('weather-condition').textContent = weather.condition;
+                document.getElementById('weather-temp').textContent = `${weather.temperature}°C | Humidity: ${weather.humidity}%`;
+                document.getElementById('weather-wind').textContent = `Wind: ${weather.windSpeed} km/h`;
+                
+                // Update road conditions based on weather
+                if (weather.condition.includes('Rain') || weather.condition.includes('Thunderstorm')) {
+                    document.getElementById('road-conditions').textContent = 'Wet roads | Reduced visibility';
+                    document.getElementById('weather-delay').textContent = 'Expect 10-15 minute delays';
+                } else {
+                    document.getElementById('road-conditions').textContent = 'Dry roads | Good visibility';
+                    document.getElementById('weather-delay').textContent = 'No weather delays expected';
+                }
+            }
+        }
+        
+        // Create animated route
+        function createAnimatedRoute(routeCoordinates) {
+            if (animatedRoute) {
+                map.removeLayer(animatedRoute);
+            }
+            
+            // Create a dashed line with animation
+            animatedRoute = L.polyline(routeCoordinates, {
+                color: '#3498db',
+                weight: 6,
+                opacity: 0.8,
+                dashArray: '10, 10',
+                className: 'route-animation'
+            }).addTo(map);
+            
+            return animatedRoute;
+        }
+        
+        // Create moving marker
+        function createMovingMarker(startCoords) {
+            if (movingMarker) {
+                map.removeLayer(movingMarker);
+            }
+            
+            // Create a custom moving marker with pulsing effect
+            const movingIcon = L.divIcon({
+                className: 'pulse-marker',
+                html: '<div style="width: 16px; height: 16px; background-color: #3498db; border-radius: 50%; border: 2px solid white;"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            
+            movingMarker = L.marker([startCoords.lat, startCoords.lng], { icon: movingIcon }).addTo(map);
+            return movingMarker;
+        }
+        
+        // Generate turn-by-turn directions
+        function generateTurnByTurnDirections(route) {
+            if (!route.legs || route.legs.length === 0) return [];
+            
+            const steps = [];
+            let stepCount = 0;
+            
+            // Process each leg of the journey
+            route.legs.forEach((leg, legIndex) => {
+                if (leg.steps) {
+                    leg.steps.forEach((step, stepIndex) => {
+                        // Skip the first step of subsequent legs (it's usually just "Head to destination")
+                        if (legIndex > 0 && stepIndex === 0) return;
+                        
+                        steps.push({
+                            instruction: step.maneuver.instruction,
+                            distance: (step.distance / 1000).toFixed(1) + ' km',
+                            duration: Math.round(step.duration / 60) + ' min',
+                            type: step.maneuver.type,
+                            modifier: step.maneuver.modifier || '',
+                            location: step.maneuver.location
+                        });
+                        
+                        stepCount++;
+                    });
+                }
+            });
+            
+            return steps;
+        }
+        
+        // Display turn-by-turn directions
+        function displayTurnByTurnDirections(steps) {
+            const directionsList = document.getElementById('directions-list');
+            directionsList.innerHTML = '';
+            
+            steps.forEach((step, index) => {
+                const directionItem = document.createElement('div');
+                directionItem.style.padding = '8px';
+                directionItem.style.borderBottom = '1px solid #eee';
+                directionItem.style.fontSize = '14px';
+                directionItem.innerHTML = `
+                    <div><strong>${index + 1}. ${step.instruction}</strong></div>
+                    <div style="color: #7f8c8d; font-size: 12px;">${step.distance} • ${step.duration}</div>
+                `;
+                directionsList.appendChild(directionItem);
+            });
+            
+            document.getElementById('turn-by-turn').style.display = 'block';
+            document.getElementById('current-step').textContent = '1';
+            document.getElementById('total-steps').textContent = steps.length;
+        }
+        
+        // Speak text using the Web Speech API
+        function speakText(text) {
+            if (!isSpeechEnabled || !speechSynthesis) return;
+            
+            // Cancel any ongoing speech
+            if (currentSpeech) {
+                speechSynthesis.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+            
+            currentSpeech = utterance;
+            speechSynthesis.speak(utterance);
+            
+            // Update bot message
+            document.getElementById('bot-message').textContent = text;
+            document.getElementById('ai-bot').style.display = 'flex';
+        }
+        
+        // Start navigation
+        function startNavigation() {
+            if (routeSteps.length === 0) return;
+            
+            isNavigating = true;
+            currentStep = 0;
+            document.getElementById('navigation-controls').style.display = 'flex';
+            document.getElementById('step-counter').style.display = 'block';
+            document.getElementById('direction-indicator').style.display = 'flex';
+            document.getElementById('ai-bot').style.display = 'flex';
+            
+            // Enable speech
+            isSpeechEnabled = true;
+            
+            // Welcome message
+            speakText("Starting navigation. Please follow the directions.");
+            
+            updateNavigationStep(0);
+            
+            // Simulate movement along the route
+            if (navigationInterval) clearInterval(navigationInterval);
+            
+            navigationInterval = setInterval(() => {
+                if (currentStep < routeSteps.length - 1) {
+                    currentStep++;
+                    updateNavigationStep(currentStep);
+                } else {
+                    stopNavigation();
+                    speakText("You have reached your final destination.");
+                }
+            }, 10000); // Change step every 10 seconds
+        }
+        
+        // Update navigation step
+        function updateNavigationStep(stepIndex) {
+            if (stepIndex >= routeSteps.length) return;
+            
+            const step = routeSteps[stepIndex];
+            document.getElementById('current-step').textContent = stepIndex + 1;
+            
+            // Update direction indicator
+            document.getElementById('direction-text').textContent = step.instruction;
+            
+            // Generate speech instruction
+            let speechText = step.instruction;
+            if (step.distance) {
+                speechText += ` in ${step.distance}`;
+            }
+            
+            // Add direction-specific cues
+            if (step.type === 'turn' || step.type === 'roundabout') {
+                if (step.modifier) {
+                    speechText = `In 300 meters, ${step.modifier} ${step.instruction}`;
+                }
+            } else if (step.type === 'arrive') {
+                if (stepIndex < routeSteps.length - 1) {
+                    speechText = `You have arrived at waypoint ${Math.floor(stepIndex/10) + 1}. Continue to your next destination.`;
+                } else {
+                    speechText = "You have arrived at your final destination.";
+                }
+            }
+            
+            // Speak the instruction
+            speakText(speechText);
+            
+            // Update moving marker position (simplified)
+            if (movingMarker && step.location) {
+                movingMarker.setLatLng([step.location[1], step.location[0]]);
+                map.panTo([step.location[1], step.location[0]]);
+            }
+        }
+        
+        // Pause navigation
+        function pauseNavigation() {
+            if (navigationInterval) {
+                clearInterval(navigationInterval);
+                navigationInterval = null;
+                isNavigating = false;
+                
+                // Pause speech
+                if (speechSynthesis && isSpeechEnabled) {
+                    speechSynthesis.pause();
+                }
+                
+                speakText("Navigation paused.");
+            }
+        }
+        
+        // Stop navigation
+        function stopNavigation() {
+            pauseNavigation();
+            document.getElementById('navigation-controls').style.display = 'none';
+            document.getElementById('step-counter').style.display = 'none';
+            document.getElementById('direction-indicator').style.display = 'none';
+            document.getElementById('ai-bot').style.display = 'none';
+            
+            // Stop speech
+            if (speechSynthesis && isSpeechEnabled) {
+                speechSynthesis.cancel();
+            }
+            isSpeechEnabled = false;
+            
+            if (movingMarker) {
+                map.removeLayer(movingMarker);
+                movingMarker = null;
+            }
+        }
+        
+        // Calculate route based on user preferences
+        async function calculateRoute() {
+            const startAddress = document.getElementById('start').value || userHomeLocation || "Bangalore";
+            const destinationAddresses = getDestinationValues();
+            
+            if (destinationAddresses.length === 0) {
+                alert('Please enter at least one destination');
+                return;
+            }
+            
+            const travelMode = document.getElementById('travel-mode').value;
+            const avoidTolls = document.getElementById('avoid-tolls').checked;
+            const avoidHighways = document.getElementById('avoid-highways').checked;
+            const considerWeather = document.getElementById('consider-weather').checked;
+            const considerTraffic = document.getElementById('consider-traffic').checked;
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                // Geocode addresses
+                const startCoords = await geocodeAddress(startAddress);
+                if (!startCoords) {
+                    throw new Error('Could not find start location');
+                }
+                
+                // Geocode all destinations
+                const waypointCoords = [];
+                for (const address of destinationAddresses) {
+                    const coords = await geocodeAddress(address);
+                    if (coords) {
+                        waypointCoords.push(coords);
+                    } else {
+                        console.warn(`Could not geocode address: ${address}`);
+                    }
+                }
+                
+                if (waypointCoords.length === 0) {
+                    throw new Error('Could not find any destination locations');
+                }
+                
+                // The last waypoint becomes the final destination
+                const endCoords = waypointCoords.pop();
+                
+                // Determine OSRM profile based on travel mode
+                let profile = 'driving';
+                if (travelMode === 'bike') profile = 'cycling';
+                if (travelMode === 'foot') profile = 'walking';
+                
+                // Get route from OSRM with waypoints
+                const route = await getRouteWithWaypoints(startCoords, waypointCoords, endCoords, profile);
+                
+                if (!route) {
+                    throw new Error('Could not calculate route');
+                }
+                
+                // Clear previous markers and route
+                clearMap();
+                stopNavigation();
+                
+                // Add markers for start and end points
+                const startMarker = L.marker([startCoords.lat, startCoords.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>Start:</b> ${startAddress}`);
+                
+                const endMarker = L.marker([endCoords.lat, endCoords.lng])
+                    .addTo(map)
+                    .bindPopup(`<b>Final Destination:</b> ${destinationAddresses[destinationAddresses.length - 1]}`);
+                
+                currentMarkers.push(startMarker, endMarker);
+                
+                // Add markers for waypoints
+                waypointCoords.forEach((coords, index) => {
+                    const waypointMarker = L.marker([coords.lat, coords.lng], {
+                        icon: L.divIcon({
+                            className: 'waypoint-marker',
+                            iconSize: [16, 16]
+                        })
+                    })
+                    .addTo(map)
+                    .bindPopup(`<b>Waypoint ${index + 1}:</b> ${destinationAddresses[index]}`);
+                    
+                    currentMarkers.push(waypointMarker);
+                });
+                
+                // Draw the route
+                const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                currentRoute = L.polyline(routeCoordinates, {
+                    color: '#3498db',
+                    weight: 5,
+                    opacity: 0.7
+                }).addTo(map);
+                
+                // Create animated route
+                createAnimatedRoute(routeCoordinates);
+                
+                // Create moving marker
+                createMovingMarker(startCoords);
+                
+                // Fit map to show the entire route
+                const bounds = L.latLngBounds(routeCoordinates);
+                map.fitBounds(bounds);
+                
+                // Generate and display turn-by-turn directions
+                routeSteps = generateTurnByTurnDirections(route);
+                displayTurnByTurnDirections(routeSteps);
+                
+                // Update route information
+                const distance = (route.distance / 1000).toFixed(1); // Convert to km
+                const duration = Math.round(route.duration / 60); // Convert to minutes
+                
+                // Adjust for traffic and weather if needed
+                let trafficDuration = duration;
+                if (considerTraffic) {
+                    // Simulate traffic delay (20-50% increase)
+                    const trafficMultiplier = 1 + (Math.random() * 0.3 + 0.2);
+                    trafficDuration = Math.round(duration * trafficMultiplier);
+                }
+                
+                document.getElementById('route-distance').textContent = `${distance} km`;
+                document.getElementById('route-duration').textContent = `${duration} min`;
+                document.getElementById('route-traffic').textContent = `${trafficDuration} min`;
+                
+            // Calculate fuel cost for driving
+            if (travelMode === 'car') {
+                const fuelPrice = 105; // default ₹105 per liter (can replace with live API)
+                const mileage = 15; // avg car mileage
+                const cost = Math.round((distance / mileage) * fuelPrice);
+                document.getElementById('route-cost').textContent = '₹' + (cost*2) ;
+            }
+            else if (travelMode === 'bike') {
+                const fuelPrice = 105; 
+                const mileage = 35; // avg bike mileage
+                const cost = Math.round((distance / mileage) * fuelPrice);
+                document.getElementById('route-cost').textContent = '₹' + (cost*2) ;
+            }
+            else if (travelMode === 'ffot') {
+                const fuelPrice = 105; 
+                const mileage = 35; // avg bike mileage
+                const cost = Math.round((distance / mileage) * fuelPrice);
+                document.getElementById('route-cost').textContent = '₹' + (cost * 0);
+            }
+            else {
+                document.getElementById('route-cost').textContent = '-';
+            }
+
+                
+                // Show notification
+                alert(`Route calculated from ${startAddress} to ${destinationAddresses.join(' → ')}\nTravel mode: ${travelMode}\nAccounting for traffic: ${considerTraffic ? 'Yes' : 'No'}\nAccounting for weather: ${considerWeather ? 'Yes' : 'No'}`);
+                
+            } catch (error) {
+                alert('Error calculating route: ' + error.message);
+                console.error('Route calculation error:', error);
+            } finally {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Clear existing markers and route from map
+        function clearMap() {
+            currentMarkers.forEach(marker => map.removeLayer(marker));
+            currentMarkers = [];
+            
+            if (currentRoute) {
+                map.removeLayer(currentRoute);
+                currentRoute = null;
+            }
+            
+            if (animatedRoute) {
+                map.removeLayer(animatedRoute);
+                animatedRoute = null;
+            }
+            
+            stopNavigation();
+            document.getElementById('turn-by-turn').style.display = 'none';
+        }
+        
+        // Update time function
+        function updateDateTime() {
+            const now = new Date();
+            const timeElement = document.getElementById('current-time');
+            const dateElement = document.getElementById('current-date');
+            
+            // Format time
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            timeElement.textContent = now.toLocaleTimeString('en-IN', timeOptions);
+            
+            // Format date
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = now.toLocaleDateString('en-IN', dateOptions);
+        }
+        
+        // Navigate back to main page
+        function goBackToMain() {
+            // Show confirmation if there's unsaved work
+            if (currentRoute) {
+                if (confirm('Are you sure you want to go back? Your current route will be lost.')) {
+                    window.location.href = 'main.html';
+                }
+            } else {
+                window.location.href = 'main.html';
+            }
+        }
+        
+        // Initialize the application
+        function initApp() {
+            // Load user data
+            loadUserData();
+            
+            // Update date and time
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Update weather information
+            updateWeatherInfo();
+            setInterval(updateWeatherInfo, 300000); // Update every 5 minutes
+            
+            // Add event listeners
+            document.getElementById('back-button').addEventListener('click', goBackToMain);
+            
+            document.getElementById('add-destination').addEventListener('click', function() {
+                addDestinationField();
+            });
+            
+            document.getElementById('current-location').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        map.setView([position.coords.latitude, position.coords.longitude], 14);
+                        
+                        // Add a marker at the current location
+                        const marker = L.marker([position.coords.latitude, position.coords.longitude])
+                            .addTo(map)
+                            .bindPopup("You are here")
+                            .openPopup();
+                        
+                        currentMarkers.push(marker);
+                    }, function() {
+                        alert('Error: The Geolocation service failed or your browser doesn\'t support geolocation.');
+                    });
+                } else {
+                    alert('Error: Your browser doesn\'t support geolocation.');
+                }
+            });
+            
+            document.getElementById('traffic-toggle').addEventListener('click', function() {
+                // Simulated traffic overlay (in a real app, you might use a traffic layer)
+                alert("Traffic overlay would show here with a proper traffic API");
+            });
+            
+            document.getElementById('weather-toggle').addEventListener('click', function() {
+                alert("Weather overlay would show here with a proper weather API");
+            });
+            
+            document.getElementById('satellite-toggle').addEventListener('click', function() {
+                if (satelliteView) {
+                    // Switch to standard view
+                    map.removeLayer(satelliteLayer);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    alert("Switched to standard view.");
+                } else {
+                    // Switch to satellite view
+                    map.eachLayer(layer => {
+                        if (layer instanceof L.TileLayer && layer._url.includes('openstreetmap')) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                    satelliteLayer.addTo(map);
+                    alert("Switched to satellite view.");
+                }
+                satelliteView = !satelliteView;
+            });
+            
+            // Route calculation
+            document.getElementById('calculate-route').addEventListener('click', calculateRoute);
+            
+            // Navigation controls
+            document.getElementById('start-navigation').addEventListener('click', startNavigation);
+            document.getElementById('pause-navigation').addEventListener('click', pauseNavigation);
+            document.getElementById('stop-navigation').addEventListener('click', stopNavigation);
+            
+            // AI Bot controls
+            document.getElementById('bot-speak').addEventListener('click', function() {
+                isSpeechEnabled = true;
+                if (routeSteps.length > 0 && currentStep < routeSteps.length) {
+                    updateNavigationStep(currentStep);
+                } else {
+                    speakText("Navigation assistant activated. Ready to guide you.");
+                }
+            });
+            
+            document.getElementById('bot-mute').addEventListener('click', function() {
+                isSpeechEnabled = false;
+                if (speechSynthesis) {
+                    speechSynthesis.cancel();
+                }
+                document.getElementById('bot-message').textContent = "Voice guidance muted";
+            });
+            
+            document.getElementById('bot-close').addEventListener('click', function() {
+                document.getElementById('ai-bot').style.display = 'none';
+            });
+            
+            // Make initial destinations draggable
+            makeDestinationsDraggable();
+            
+            // Calculate a default route if user has home and office locations
+            if (userHomeLocation && userOfficeLocation) {
+                setTimeout(calculateRoute, 1000);
+            }
+        }
+        
+        // Initialize the app when the document is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

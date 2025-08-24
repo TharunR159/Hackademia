@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Dashboard - Maps & Smart Food</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 36px;
+            color: #2c3e50;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .user-details {
+            text-align: right;
+            position: relative;
+        }
+
+        .user-details h2 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .user-details p {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .sign-out-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            z-index: 100;
+            display: none;
+            min-width: 150px;
+        }
+
+        .sign-out-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .sign-out-btn:hover {
+            background: #c0392b;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .user-details {
+                text-align: center;
+            }
+            
+            .sign-out-menu {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            padding: 25px;
+            text-align: center;
+            background: #2c3e50;
+            color: white;
+        }
+
+        .card-header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .card-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .card-content {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-icon {
+            font-size: 64px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .card-description {
+            margin-bottom: 25px;
+            color: #34495e;
+            line-height: 1.6;
+        }
+
+        .features {
+            margin-bottom: 25px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .feature-icon {
+            width: 30px;
+            height: 30px;
+            background: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+        }
+
+        .card-footer {
+            margin-top: auto;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .weather-info {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .weather-icon {
+            font-size: 32px;
+        }
+
+        .weather-details h3 {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🚀</span>
+            <h1>CityGuide Dashboard</h1>
+        </div>
+        <div class="user-info">
+            <div class="user-details">
+                <h2 id="user-name">John Smith</h2>
+                <p id="user-email">john.smith@example.com</p>
+                <div class="sign-out-menu" id="sign-out-menu">
+                    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
+            <div class="user-avatar" id="user-avatar">JS</div>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <div class="card">
+            <div class="card-header">
+                <h2>Live Maps & Navigation</h2>
+                <p>Real-time traffic, weather, and route planning</p>
+            </div>
+            <div class="card-content">
+                <div class="card-icon">🗺️</div>
+                <p class="card-description">
+                    Get optimized routes based on real-time traffic conditions, weather updates, and your personal preferences. Plan your commute with intelligent suggestions.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">🚗</div>
+                        <span>Real-time traffic conditions</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🌤️</div>
+                        <span>Weather-aware routing</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">⏱️</div>
+                        <span>Time estimation with traffic</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📍</div>
+                        <span>Personalized locations</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" onclick="navigateTo('maps.html')">Open Maps</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Smart Food Recommendations</h2>
+                <p>Personalized dining suggestions based on your preferences</p>
+            </div>
+            <div class="card-content">
+                <div class="card-icon">🍔</div>
+                <p class="card-description">
+                    Discover restaurants and food options tailored to your taste preferences, dietary restrictions, and current location. Get personalized recommendations based on your history.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">👍</div>
+                        <span>Personalized recommendations</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🥗</div>
+                        <span>Dietary preference filtering</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💰</div>
+                        <span>Price range options</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">⭐</div>
+                        <span>Rating and reviews</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-success" onclick="navigateTo('food.html')">Explore Food Options</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="weather-info">
+        <div class="weather-icon">🌤️</div>
+        <div class="weather-details">
+            <h3>Current Weather in Bangalore</h3>
+            <p>28°C | Partly Cloudy | Humidity: 65%</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>CityGuide Dashboard &copy; 2023 | Your Personal Navigation Assistant</p>
+    </footer>
+
+    <script>
+        // Load user data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('currentSession') !== null;
+            
+            if (!isLoggedIn) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Get current user information
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentSession'));
+                if (currentUser) {
+                    document.getElementById('user-name').textContent = currentUser.name;
+                    document.getElementById('user-email').textContent = currentUser.email;
+                    
+                    // Set avatar initials
+                    const initials = currentUser.name.split(' ').map(word => word[0]).join('').toUpperCase();
+                    document.getElementById('user-avatar').textContent = initials;
+                }
+            } catch (e) {
+                console.error('Error loading user data:', e);
+            }
+            
+            // Add click event to user name for sign out menu
+            document.getElementById('user-name').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const menu = document.getElementById('sign-out-menu');
+                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Close menu when clicking elsewhere
+            document.addEventListener('click', function() {
+                document.getElementById('sign-out-menu').style.display = 'none';
+            });
+        });
+
+        // Navigation function
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+        
+        // Sign out function
+        function signOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                // Clear session data
+                localStorage.removeItem('currentSession');
+                
+                // Redirect to login page
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Simulate weather data
+        function updateWeather() {
+            const weatherData = {
+                temperature: 28 + Math.floor(Math.random() * 4) - 2, // 26-30°C
+                conditions: ['Sunny', 'Partly Cloudy', 'Cloudy'][Math.floor(Math.random() * 3)],
+                humidity: 60 + Math.floor(Math.random() * 15) // 60-75%
+            };
+            
+            const weatherElement = document.querySelector('.weather-info');
+            weatherElement.innerHTML = `
+                <div class="weather-icon">${weatherData.conditions === 'Sunny' ? '☀️' : weatherData.conditions === 'Partly Cloudy' ? '🌤️' : '☁️'}</div>
+                <div class="weather-details">
+                    <h3>Current Weather in Bangalore</h3>
+                    <p>${weatherData.temperature}°C | ${weatherData.conditions} | Humidity: ${weatherData.humidity}%</p>
+                </div>
+            `;
+        }
+
+        // Update weather every 10 minutes
+        updateWeather();
+        setInterval(updateWeather, 600000);
+    </script>
+</body>
+</html>

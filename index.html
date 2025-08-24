@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - User Authentication System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional styles for the title */
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .app-title {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .app-tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1 class="app-title">Path & Plate</h1>
+        <p class="app-tagline">Smarter Routes - Navigate Your City, Better Eats - Discover Your Taste</p>
+    </div>
+    
+    <div class="container">
+        <div class="auth-container">
+            <div class="tab-container">
+                <div class="tab active" id="login-tab">Login</div>
+                <div class="tab" id="signup-tab">Sign Up</div>
+            </div>
+
+            <div class="form-container">
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form">
+                    <h2>Welcome Back</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                        <div class="error" id="login-email-error">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                        <div class="error" id="login-password-error">Password is required</div>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signup-form" class="auth-form hidden">
+                    <h2>Create Account</h2>
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" required>
+                        <div class="error" id="signup-name-error">Name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required>
+                        <div class="error" id="signup-email-error">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required>
+                        <div class="error" id="signup-password-error">Password must be at least 6 characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required>
+                        <div class="error" id="signup-confirm-password-error">Passwords do not match</div>
+                    </div>
+                    <button type="submit">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // DOM Elements
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+
+        // Tab Switching
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            signupTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+        });
+
+        signupTab.addEventListener('click', () => {
+            signupTab.classList.add('active');
+            loginTab.classList.remove('active');
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        // Form Submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (validateLoginForm()) {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                if (loginUser(email, password)) {
+                    window.location.href = 'user.html';
+                } else {
+                    alert('Invalid email or password');
+                }
+            }
+        });
+
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (validateSignupForm()) {
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                
+                if (registerUser(name, email, password)) {
+                    alert('Account created successfully! Please login.');
+                    loginTab.click();
+                    signupForm.reset();
+                } else {
+                    alert('Email already registered');
+                }
+            }
+        });
+
+        // Form validation functions
+        function validateLoginForm() {
+            let isValid = true;
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // Reset errors
+            document.getElementById('login-email-error').style.display = 'none';
+            document.getElementById('login-password-error').style.display = 'none';
+            
+            // Validate email
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                document.getElementById('login-email-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate password
+            if (!password) {
+                document.getElementById('login-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        function validateSignupForm() {
+            let isValid = true;
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            
+            // Reset errors
+            document.getElementById('signup-name-error').style.display = 'none';
+            document.getElementById('signup-email-error').style.display = 'none';
+            document.getElementById('signup-password-error').style.display = 'none';
+            document.getElementById('signup-confirm-password-error').style.display = 'none';
+            
+            // Validate name
+            if (!name) {
+                document.getElementById('signup-name-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate email
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                document.getElementById('signup-email-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate password
+            if (!password || password.length < 6) {
+                document.getElementById('signup-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate confirm password
+            if (password !== confirmPassword) {
+                document.getElementById('signup-confirm-password-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Check if user is already logged in
+        if (isLoggedIn()) {
+            window.location.href = 'user.html';
+        }
+    </script>
+</body>
+</html>

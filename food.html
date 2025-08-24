@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodFinder - Discover Restaurants Near You</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 1.3rem;
+            color: #555;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            animation: slideUp 0.8s ease;
+        }
+
+        .recommendation-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideUp 0.5s ease;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #eee;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .popup-close:hover {
+            background: #ff6b6b;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .popup-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .popup-header h2 {
+            color: #ff6b6b;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .popup-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .popup-recommendations {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .popup-recommendation {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .popup-recommendation:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .popup-recommendation img {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+
+        .popup-recommendation-info {
+            flex: 1;
+        }
+
+        .popup-recommendation-info h3 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .popup-recommendation-info p {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .popup-recommendation-price {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .popup-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .popup-btn {
+            padding: 12px 25px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .popup-btn.primary {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .popup-btn.secondary {
+            background: #eee;
+            color: #333;
+        }
+
+        .popup-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .popup-content {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .popup-recommendation {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .popup-recommendation img {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .popup-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .location-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            grid-column: 1 / -1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .location-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .location-input {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .location-input input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px 0 0 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .location-input input:focus {
+            border-color: #ff6b6b;
+        }
+
+        .location-input button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .location-input button:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .or-use {
+            margin: 20px 0;
+            color: #666;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .or-use::before,
+        .or-use::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #ddd;
+            margin: 0 10px;
+        }
+
+        .location-btn {
+            background: linear-gradient(135deg, #4ecdc4 0%, #3db9b1 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+            box-shadow: 0 4px 15px rgba(62, 185, 177, 0.3);
+        }
+
+        .location-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(62, 185, 177, 0.4);
+        }
+
+        .restaurants-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-header i {
+            font-size: 2.2rem;
+            margin-right: 15px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            color: #444;
+            font-weight: 700;
+        }
+
+        .restaurant-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .restaurant-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .restaurant-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .restaurant-card:hover .restaurant-image {
+            transform: scale(1.1);
+        }
+
+        .restaurant-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff6b6b;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .restaurant-info {
+            padding: 25px;
+        }
+
+        .restaurant-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .restaurant-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .rating {
+            color: #ffc107;
+            margin-right: 15px;
+            font-weight: 600;
+        }
+
+        .cuisine {
+            margin-bottom: 12px;
+            color: #666;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .restaurant-info p {
+            color: #777;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .restaurant-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .distance {
+            font-weight: bold;
+            color: #ff6b6b;
+            font-size: 1.1rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .action-btn.added {
+            background: linear-gradient(135deg, #4ecdc4 0%, #3db9b1 100%);
+        }
+
+        .action-btn.ordered {
+            background: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .calendar-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar {
+            text-align: center;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-header button:hover {
+            transform: scale(1.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .calendar-day:hover {
+            background: #f0f0f0;
+        }
+
+        .calendar-day.today {
+            background: #ff6b6b;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .calendar-day.has-order {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .daily-special {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .daily-special:hover {
+            transform: translateY(-5px);
+        }
+
+        .daily-special h4 {
+            color: white;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .cart-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .cart-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .cart-items {
+            margin: 20px 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s ease;
+            align-items: center;
+        }
+
+        .remove-item {
+            color: #ff6b6b;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+
+        .remove-item:hover {
+            color: #ff5252;
+        }
+
+        .cart-item:hover {
+            background: #f9f9f9;
+        }
+
+        .cart-total {
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: right;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(135deg, #4ecdc4 0%, #3db9b1 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(62, 185, 177, 0.3);
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(62, 185, 177, 0.4);
+        }
+
+        .offers-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            grid-column: 1 / -1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .offer-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .offer-card {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 18px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .offer-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .offer-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .offer-card p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .offer-code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .offer-card:hover .offer-code {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .notifications {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            z-index: 1000;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease;
+            border-left: 5px solid;
+        }
+
+        .notification.success {
+            border-left-color: #4ecdc4;
+        }
+
+        .notification.info {
+            border-left-color: #ff6b6b;
+        }
+
+        .notification i {
+            font-size: 1.8rem;
+            margin-right: 15px;
+        }
+
+        .notification.success i {
+            color: #4ecdc4;
+        }
+
+        .notification.info i {
+            color: #ff6b6b;
+        }
+
+        .notification-content h4 {
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .notification-content p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .current-time {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            color: #555;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 18px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .current-time span {
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        /* AI Bot Styles */
+        .ai-bot {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 50px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            max-width: 300px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ai-bot i {
+            font-size: 1.8rem;
+            color: #4ecdc4;
+            margin-right: 10px;
+        }
+
+        .ai-bot p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        /* Recommendations Section */
+        .recommendations-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            grid-column: 1 / -1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+           100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .restaurant-cards, .offer-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .notifications {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+            }
+            
+            .location-input {
+                flex-direction: column;
+            }
+            
+            .location-input input {
+                border-radius: 12px;
+                margin-bottom: 10px;
+            }
+            
+            .location-input button {
+                border-radius: 12px;
+                padding: 12px;
+            }
+            
+            .section-header i {
+                width: 50px;
+                height: 50px;
+                font-size: 1.8rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.6rem;
+            }
+            
+            .ai-bot {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                border-radius: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FoodFinder</h1>
+            <p>Discover amazing restaurants near your location with exclusive offers!</p>
+        </header>
+
+        <div class="current-time">
+            <i class="fas fa-clock"></i> Current time: <span id="time-display">Loading...</span>
+        </div>
+
+        <div class="location-section">
+            <h2>Find Restaurants Near You</h2>
+            <div class="location-input">
+                <input type="text" id="location-input" placeholder="Enter your address or zip code">
+                <button id="search-btn"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <div class="or-use">or</div>
+            <button class="location-btn" id="current-location-btn">
+                <i class="fas fa-location-arrow"></i> Use My Current Location
+            </button>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendations-section" id="recommendations-section" style="display: none;">
+            <div class="section-header">
+                <i class="fas fa-star"></i>
+                <h2>Based on Your Past Orders</h2>
+            </div>
+            <div class="restaurant-cards" id="recommendations-list">
+                <!-- Recommended restaurant cards will be dynamically generated here -->
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="restaurants-section">
+                <div class="section-header">
+                    <i class="fas fa-utensils"></i>
+                    <h2>Popular Restaurants Nearby</h2>
+                </div>
+                <div class="restaurant-cards" id="restaurant-list">
+                    <!-- Restaurant cards will be dynamically generated here -->
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="calendar-section">
+                    <div class="section-header">
+                        <i class="fas fa-calendar"></i>
+                        <h2>Daily Specials</h2>
+                    </div>
+                    <div class="calendar" id="calendar">
+                        <!-- Calendar will be generated here -->
+                    </div>
+                    <div class="daily-special" id="daily-special">
+                        <h4>Today's Special</h4>
+                        <p id="special-description">Loading today's special...</p>
+                    </div>
+                </div>
+
+                <div class="cart-section">
+                    <div class="section-header">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h2>Your Cart</h2>
+                    </div>
+                    <div class="cart-items" id="cart-items">
+                        <p id="empty-cart">Your cart is empty</p>
+                    </div>
+                    <div class="cart-total" id="cart-total" style="display: none;">
+                        Total: $<span id="total-amount">0.00</span>
+                    </div>
+                    <button class="checkout-btn" id="checkout-btn" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="offers-section">
+            <div class="section-header">
+                <i class="fas fa-tags"></i>
+                <h2>Special Offers</h2>
+            </div>
+            <div class="offer-cards">
+                <div class="offer-card">
+                    <h3>First Order Discount</h3>
+                    <p>20% off on your first order from any restaurant</p>
+                    <div class="offer-code">Code: WELCOME20</div>
+                </div>
+                <div class="offer-card">
+                    <h3>Free Delivery</h3>
+                    <p>Free delivery on orders over $25 from participating restaurants</p>
+                    <div class="offer-code">Code: FREESHIP</div>
+                </div>
+                <div class="offer-card">
+                    <h3>Weekend Special</h3>
+                    <p>15% off on all orders placed on weekends</p>
+                    <div class="offer-code">Code: WEEKEND15</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notifications" id="notification-area">
+            <!-- Notifications will appear here -->
+        </div>
+
+        <!-- AI Bot Notification -->
+        <div class="ai-bot" id="ai-bot" style="display: none;">
+            <i class="fas fa-robot"></i>
+            <p id="ai-message">Command completed successfully.</p>
+        </div>
+    </div>
+    <!-- Recommendation Popup -->
+        <div class="recommendation-popup" id="recommendation-popup" style="display: none;">
+            <div class="popup-content">
+                <div class="popup-close" id="popup-close">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="popup-header">
+                    <h2>Welcome Back!</h2>
+                    <p>Based on your order history, we think you'll love these</p>
+                </div>
+                <div class="popup-recommendations" id="popup-recommendations">
+                    <!-- Popup recommendations will be dynamically generated here -->
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-btn primary" id="popup-view-all">View All Recommendations</button>
+                    <button class="popup-btn secondary" id="popup-dismiss">Dismiss</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        // Current time display
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('time-display').textContent = timeString;
+        }
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Sample restaurant data
+        const restaurants = [
+            {
+                id: 1,
+                name: 'The Italian Corner',
+                cuisine: 'Italian',
+                description: 'Authentic Italian cuisine with homemade pasta and wood-fired pizzas',
+                rating: 4.7,
+                distance: '0.8 miles',
+                image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Popular',
+                price: 12.99
+            },
+            {
+                id: 2,
+                name: 'Sushi Haven',
+                cuisine: 'Japanese',
+                description: 'Fresh sushi and sashimi with a modern twist',
+                rating: 4.5,
+                distance: '1.2 miles',
+                image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Trending',
+                price: 15.99
+            },
+            {
+                id: 3,
+                name: 'Burger Junction',
+                cuisine: 'American',
+                description: 'Gourmet burgers and hand-cut fries with unique dipping sauces',
+                rating: 4.3,
+                distance: '0.5 miles',
+                image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Fast',
+                price: 9.99
+            },
+            {
+                id: 4,
+                name: 'Spice Garden',
+                cuisine: 'Indian',
+                description: 'Traditional Indian dishes with aromatic spices and flavors',
+                rating: 4.6,
+                distance: '1.5 miles',
+                image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Spicy',
+                price: 13.99
+            },
+            {
+                id: 5,
+                name: 'Mediterranean Delight',
+                cuisine: 'Mediterranean',
+                description: 'Healthy Mediterranean dishes with fresh ingredients',
+                rating: 4.8,
+                distance: '0.9 miles',
+                image: 'https://images.unsplash.com/photo-1598214886806-c87b84b7078b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Healthy',
+                price: 11.99
+            },
+            {
+                id: 6,
+                name: 'Taco Fiesta',
+                cuisine: 'Mexican',
+                description: 'Authentic Mexican street tacos and margaritas',
+                rating: 4.4,
+                distance: '1.1 miles',
+                image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+                tag: 'Vibrant',
+                price: 8.99
+            }
+        ];
+
+        // Daily specials for each day of the week
+        const dailySpecials = {
+            0: "Sunday Brunch Special - 20% off all brunch items until 2 PM",
+            1: "Meatless Monday - 15% off all vegetarian dishes",
+            2: "Taco Tuesday - $2 tacos all day long",
+            3: "Wing Wednesday - Half-price wings and draft beer",
+            4: "Thirsty Thursday - Buy one get one free on all drinks",
+            5: "Fish Friday - Fresh seafood specials at reduced prices",
+            6: "Saturday Grill Night - Special BBQ menu with live music"
+        };
+
+        // Cart and order management
+        let cart = [];
+        let orderedItems = JSON.parse(localStorage.getItem('orderedItems')) || {};
+        let lastVisit = localStorage.getItem('lastVisit');
+        let isNewVisit = !lastVisit || (new Date().getTime() - parseInt(lastVisit)) > (30 * 60 * 1000); // 30 minutes threshold
+
+        // Show AI bot message
+        function showAIMessage(message) {
+            const aiBot = document.getElementById('ai-bot');
+            const aiMessage = document.getElementById('ai-message');
+            
+            aiMessage.textContent = message;
+            aiBot.style.display = 'flex';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                aiBot.style.display = 'none';
+            }, 5000);
+        }
+
+        // Display restaurants
+        function displayRestaurants() {
+            const restaurantContainer = document.getElementById('restaurant-list');
+            
+            // Clear previous listings
+            restaurantContainer.innerHTML = '';
+            
+            // Add restaurant cards
+            restaurants.forEach(restaurant => {
+                const isInCart = cart.some(item => item.id === restaurant.id);
+                
+                const restaurantCard = document.createElement('div');
+                restaurantCard.className = 'restaurant-card';
+                restaurantCard.innerHTML = `
+                    <div class="restaurant-image" style="background-image: url('${restaurant.image}')">
+                        <div class="restaurant-tag">${restaurant.tag}</div>
+                    </div>
+                    <div class="restaurant-info">
+                        <h3>${restaurant.name}</h3>
+                        <div class="restaurant-meta">
+                            <span class="rating">${'★'.repeat(Math.floor(restaurant.rating))}${restaurant.rating}</span>
+                            <span class="distance">${restaurant.distance}</span>
+                        </div>
+                        <div class="cuisine">${restaurant.cuisine}</div>
+                        <p>${restaurant.description}</p>
+                        <div class="restaurant-actions">
+                            <span class="distance">$${restaurant.price.toFixed(2)}</span>
+                            <button class="action-btn ${isInCart ? 'added' : ''}" 
+                                    data-id="${restaurant.id}" 
+                                    data-price="${restaurant.price}">
+                                ${isInCart ? 'Added to Cart' : 'Add to Cart'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                restaurantContainer.appendChild(restaurantCard);
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const price = parseFloat(this.getAttribute('data-price'));
+                    const restaurant = restaurants.find(r => r.id === id);
+                    
+                    if (this.classList.contains('added')) {
+                        removeFromCart(id);
+                        this.classList.remove('added');
+                        this.textContent = 'Add to Cart';
+                        showNotification('Item removed', `${restaurant.name} has been removed from your cart`, 'info');
+                        showAIMessage("Item removed from cart successfully.");
+                    } else {
+                        addToCart(id, price, restaurant.name);
+                        this.classList.add('added');
+                        this.textContent = 'Added to Cart';
+                        showNotification('Item added', `${restaurant.name} has been added to your cart`, 'success');
+                        showAIMessage("Item added to cart successfully.");
+                    }
+                });
+            });
+        }
+        // Show recommendation popup
+function showRecommendationPopup() {
+    const popup = document.getElementById('recommendation-popup');
+    const popupRecommendations = document.getElementById('popup-recommendations');
+    
+    // Get all ordered restaurant IDs
+    const allOrderedIds = [];
+    for (const date in orderedItems) {
+        orderedItems[date].forEach(id => {
+            if (!allOrderedIds.includes(id)) {
+                allOrderedIds.push(id);
+            }
+        });
+    }
+    
+    // If no past orders, don't show popup
+    if (allOrderedIds.length === 0) {
+        return;
+    }
+    
+    // Get recommended restaurants (ones that were ordered before)
+    const recommendedRestaurants = restaurants.filter(restaurant => 
+        allOrderedIds.includes(restaurant.id)
+    );
+    
+    // Clear previous recommendations
+    popupRecommendations.innerHTML = '';
+    
+    // Add up to 3 recommendations to the popup
+    recommendedRestaurants.slice(0, 3).forEach(restaurant => {
+        const recommendationElement = document.createElement('div');
+        recommendationElement.className = 'popup-recommendation';
+        recommendationElement.innerHTML = `
+            <img src="${restaurant.image}" alt="${restaurant.name}">
+            <div class="popup-recommendation-info">
+                <h3>${restaurant.name}</h3>
+                <p>${restaurant.cuisine} • ${restaurant.distance}</p>
+                <p class="popup-recommendation-price">$${restaurant.price.toFixed(2)}</p>
+            </div>
+        `;
+        
+        // Add click event to add to cart
+        recommendationElement.addEventListener('click', function() {
+            addToCart(restaurant.id, restaurant.price, restaurant.name);
+            showNotification('Added to cart', `${restaurant.name} has been added to your cart`, 'success');
+            hideRecommendationPopup();
+            
+            // Update restaurant buttons
+            document.querySelectorAll(`.action-btn[data-id="${restaurant.id}"]`).forEach(btn => {
+                btn.classList.add('added');
+                btn.textContent = 'Added to Cart';
+            });
+        });
+        
+        popupRecommendations.appendChild(recommendationElement);
+    });
+    
+    // Show the popup
+    popup.style.display = 'flex';
+    
+    // Track that we've shown the popup for this visit
+    localStorage.setItem('lastRecommendationShown', new Date().getTime());
+}
+
+// Hide recommendation popup
+function hideRecommendationPopup() {
+    document.getElementById('recommendation-popup').style.display = 'none';
+}
+
+// Check if we should show the recommendation popup
+function shouldShowRecommendationPopup() {
+    // Don't show if it's a new visit
+    if (isNewVisit) return false;
+    
+    // Check if we've shown it in the last 24 hours
+    const lastShown = localStorage.getItem('lastRecommendationShown');
+    if (lastShown && (new Date().getTime() - parseInt(lastShown)) < (24 * 60 * 60 * 1000)) {
+        return false;
+    }
+    
+    // Check if user has past orders
+    const hasPastOrders = Object.keys(orderedItems).length > 0;
+    return hasPastOrders;
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+    // Clear cart on new visit
+    if (isNewVisit) {
+        cart = [];
+        localStorage.setItem('lastVisit', new Date().getTime());
+        showAIMessage("Welcome back! Your cart has been cleared from your previous visit.");
+    }
+    
+    displayRestaurants();
+    displayRecommendations();
+    generateCalendar();
+    updateCartDisplay();
+    
+    // Add event listener to checkout button
+    document.getElementById('checkout-btn').addEventListener('click', placeOrder);
+    
+    // Add event listeners for popup
+    document.getElementById('popup-close').addEventListener('click', hideRecommendationPopup);
+    document.getElementById('popup-dismiss').addEventListener('click', hideRecommendationPopup);
+    document.getElementById('popup-view-all').addEventListener('click', function() {
+        hideRecommendationPopup();
+        document.getElementById('recommendations-section').scrollIntoView({ behavior: 'smooth' });
+    });
+    
+    // Location search functionality
+    document.getElementById('search-btn').addEventListener('click', () => {
+        const location = document.getElementById('location-input').value;
+        if (location) {
+            showNotification('Location Search', `Searching for restaurants near ${location}`, 'info');
+            showAIMessage(`Searching for restaurants near ${location}. Found 15 restaurants nearby.`);
+        }
+    });
+
+    document.getElementById('current-location-btn').addEventListener('click', () => {
+        showNotification('Location Detection', 'Finding restaurants near your current location', 'info');
+        showAIMessage("Using your current location. Found 12 restaurants nearby.");
+    });
+
+    // Add hover effects to offer cards
+    document.querySelectorAll('.offer-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Show recommendation popup if conditions are met
+    if (shouldShowRecommendationPopup()) {
+        // Show after a short delay so page loads first
+        setTimeout(showRecommendationPopup, 1500);
+    }
+    
+    // Check for new notifications every hour
+    setInterval(() => {
+        const hour = new Date().getHours();
+        if (hour === 11) {
+            showNotification('Lunch Time!', 'Great restaurants nearby are ready for your lunch order', 'info');
+        } else if (hour === 17) {
+            showNotification('Dinner Specials', 'Check out tonight\'s specials at local restaurants', 'info');
+        }
+    }, 3600000);
+});
+
+        // Display recommended restaurants based on past orders
+        function displayRecommendations() {
+            const recommendationsSection = document.getElementById('recommendations-section');
+            const recommendationsList = document.getElementById('recommendations-list');
+            
+            // Get all ordered restaurant IDs
+            const allOrderedIds = [];
+            for (const date in orderedItems) {
+                orderedItems[date].forEach(id => {
+                    if (!allOrderedIds.includes(id)) {
+                        allOrderedIds.push(id);
+                    }
+                });
+            }
+            
+            // If no past orders, don't show recommendations
+            if (allOrderedIds.length === 0) {
+                recommendationsSection.style.display = 'none';
+                return;
+            }
+            
+            // Show recommendations section
+            recommendationsSection.style.display = 'block';
+            
+            // Clear previous recommendations
+            recommendationsList.innerHTML = '';
+            
+            // Get recommended restaurants (ones that were ordered before)
+            const recommendedRestaurants = restaurants.filter(restaurant => 
+                allOrderedIds.includes(restaurant.id)
+            );
+            
+            // Add recommended restaurant cards
+            recommendedRestaurants.forEach(restaurant => {
+                const isInCart = cart.some(item => item.id === restaurant.id);
+                
+                const restaurantCard = document.createElement('div');
+                restaurantCard.className = 'restaurant-card';
+                restaurantCard.innerHTML = `
+                    <div class="restaurant-image" style="background-image: url('${restaurant.image}')">
+                        <div class="restaurant-tag">Previously Ordered</div>
+                    </div>
+                    <div class="restaurant-info">
+                        <h3>${restaurant.name}</h3>
+                        <div class="restaurant-meta">
+                            <span class="rating">${'★'.repeat(Math.floor(restaurant.rating))}${restaurant.rating}</span>
+                            <span class="distance">${restaurant.distance}</span>
+                        </div>
+                        <div class="cuisine">${restaurant.cuisine}</div>
+                        <p>${restaurant.description}</p>
+                        <div class="restaurant-actions">
+                            <span class="distance">$${restaurant.price.toFixed(2)}</span>
+                            <button class="action-btn ${isInCart ? 'added' : ''}" 
+                                    data-id="${restaurant.id}" 
+                                    data-price="${restaurant.price}">
+                                ${isInCart ? 'Added to Cart' : 'Add to Cart'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                recommendationsList.appendChild(restaurantCard);
+            });
+            
+            // Add event listeners to action buttons in recommendations
+            document.querySelectorAll('#recommendations-list .action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const price = parseFloat(this.getAttribute('data-price'));
+                    const restaurant = restaurants.find(r => r.id === id);
+                    
+                    if (this.classList.contains('added')) {
+                        removeFromCart(id);
+                        this.classList.remove('added');
+                        this.textContent = 'Add to Cart';
+                        showNotification('Item removed', `${restaurant.name} has been removed from your cart`, 'info');
+                        showAIMessage("Item removed from cart successfully.");
+                    } else {
+                        addToCart(id, price, restaurant.name);
+                        this.classList.add('added');
+                        this.textContent = 'Added to Cart';
+                        showNotification('Item added', `${restaurant.name} has been added to your cart`, 'success');
+                        showAIMessage("Item added to cart successfully.");
+                    }
+                });
+            });
+        }
+
+        // Add item to cart
+        function addToCart(id, price, name) {
+            // Check if already in cart
+            if (!cart.some(item => item.id === id)) {
+                cart.push({ id, price, name });
+                updateCartDisplay();
+            }
+        }
+
+        // Remove item from cart
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartDisplay();
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            const totalAmount = document.getElementById('total-amount');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const emptyCart = document.getElementById('empty-cart');
+            
+            if (cart.length === 0) {
+                emptyCart.style.display = 'block';
+                cartTotal.style.display = 'none';
+                checkoutBtn.style.display = 'none';
+                cartItems.innerHTML = '<p id="empty-cart">Your cart is empty</p>';
+                return;
+            }
+            
+            emptyCart.style.display = 'none';
+            cartTotal.style.display = 'block';
+            checkoutBtn.style.display = 'block';
+            
+            let html = '';
+            let total = 0;
+            
+            cart.forEach(item => {
+                html += `
+                    <div class="cart-item">
+                        <span>${item.name}</span>
+                        <span>$${item.price.toFixed(2)}</span>
+                        <i class="fas fa-times remove-item" data-id="${item.id}"></i>
+                    </div>
+                `;
+                total += item.price;
+            });
+            
+            cartItems.innerHTML = html;
+            totalAmount.textContent = total.toFixed(2);
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    removeFromCart(id);
+                    showNotification('Item removed', 'Item has been removed from your cart', 'info');
+                    showAIMessage("Item removed from cart successfully.");
+                    
+                    // Update restaurant buttons
+                    document.querySelectorAll(`.action-btn[data-id="${id}"]`).forEach(btn => {
+                        btn.classList.remove('added');
+                        btn.textContent = 'Add to Cart';
+                    });
+                });
+            });
+        }
+
+        // Place order
+        function placeOrder() {
+            if (cart.length === 0) return;
+            
+            const today = new Date().toDateString();
+            if (!orderedItems[today]) {
+                orderedItems[today] = [];
+            }
+            
+            // Add all cart items to ordered items
+            cart.forEach(item => {
+                if (!orderedItems[today].includes(item.id)) {
+                    orderedItems[today].push(item.id);
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('orderedItems', JSON.stringify(orderedItems));
+            
+            // Show success notification
+            showNotification('Order Placed', 'Your order has been placed successfully!', 'success');
+            showAIMessage("Order placed successfully. Your items will be delivered soon.");
+            
+            // Clear cart
+            cart = [];
+            updateCartDisplay();
+            
+            // Update restaurant display
+            displayRestaurants();
+            
+            // Update recommendations
+            displayRecommendations();
+            
+            // Update calendar to show ordered days
+            generateCalendar();
+        }
+
+        // Show notification
+        function showNotification(title, message, type) {
+            const notificationArea = document.getElementById('notification-area');
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <div class="notification-content">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            notificationArea.appendChild(notificationElement);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                notificationElement.remove();
+            }, 5000);
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Month names
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            
+            let html = `
+                <div class="calendar-header">
+                    <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <h3>${monthNames[month]} ${year}</h3>
+                    <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            `;
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div></div>';
+            }
+            
+            // Add cells for each day of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = new Date(year, month, day).toDateString();
+                const hasOrder = orderedItems[dateStr] && orderedItems[dateStr].length > 0;
+                const isToday = day === today;
+                
+                html += `<div class="calendar-day ${isToday ? 'today' : ''} ${hasOrder ? 'has-order' : ''}">${day}</div>`;
+            }
+            
+            html += '</div>';
+            calendarEl.innerHTML = html;
+            
+            // Set today's special
+            const dayOfWeek = now.getDay();
+            document.getElementById('special-description').textContent = dailySpecials[dayOfWeek];
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Clear cart on new visit
+            if (isNewVisit) {
+                cart = [];
+                localStorage.setItem('lastVisit', new Date().getTime());
+                showAIMessage("Welcome back! Your cart has been cleared from your previous visit.");
+            }
+            
+            displayRestaurants();
+            displayRecommendations();
+            generateCalendar();
+            updateCartDisplay();
+            
+            // Add event listener to checkout button
+            document.getElementById('checkout-btn').addEventListener('click', placeOrder);
+            
+            // Location search functionality
+            document.getElementById('search-btn').addEventListener('click', () => {
+                const location = document.getElementById('location-input').value;
+                if (location) {
+                    showNotification('Location Search', `Searching for restaurants near ${location}`, 'info');
+                    showAIMessage(`Searching for restaurants near ${location}. Found 15 restaurants nearby.`);
+                }
+            });
+
+            document.getElementById('current-location-btn').addEventListener('click', () => {
+                showNotification('Location Detection', 'Finding restaurants near your current location', 'info');
+                showAIMessage("Using your current location. Found 12 restaurants nearby.");
+            });
+
+            // Add hover effects to offer cards
+            document.querySelectorAll('.offer-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Check for new notifications every hour
+            setInterval(() => {
+                const hour = new Date().getHours();
+                if (hour === 11) {
+                    showNotification('Lunch Time!', 'Great restaurants nearby are ready for your lunch order', 'info');
+                } else if (hour === 17) {
+                    showNotification('Dinner Specials', 'Check out tonight\'s specials at local restaurants', 'info');
+                }
+            }, 3600000);
+        });
+    </script>
+</body>
+</html>
